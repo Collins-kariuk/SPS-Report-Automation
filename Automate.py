@@ -39,7 +39,7 @@ def update_record(master_record, target_df):
     best_match, score = process.extractOne(school_name, school_names, scorer=fuzz.token_sort_ratio)
 
     # Check if the best match score is above a certain threshold (e.g., 90)
-    if score > 90:
+    if score > 40:
         target_index = target_df[target_df['Custom Field Data - Chapter School Name'] == best_match].index
         # If a matching row is found, update the relevant fields
         if not target_index.empty:
