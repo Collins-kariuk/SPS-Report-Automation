@@ -17,6 +17,8 @@ print("Target DataFrame Columns:", target_df.columns)
 target_df.columns = target_df.columns.str.strip()
 
 # Function to update a record in the target dataframe based on the master dataframe
+
+
 def update_record(master_record, target_df):
     # Extract the school name from the master record
     school_name = master_record['School Name (No abbreviations please)']
@@ -36,11 +38,23 @@ def update_record(master_record, target_df):
     # `school_name`.
     # - `score`: The similarity score between `school_name` and `best_match`. This score ranges
     # from 0 to 100, where 100 means an exact match.
-    best_match, score = process.extractOne(school_name, school_names, scorer=fuzz.token_sort_ratio)
+    best_match, score = process.extractOne(
+        school_name, school_names, scorer=fuzz.token_sort_ratio)
 
     # Check if the best match score is above a certain threshold (e.g., 90)
     if score > 40:
-        target_index = target_df[target_df['Custom Field Data - Chapter School Name'] == best_match].index
+        # Step 1: Select the 'Custom Field Data - Chapter School Name' column from target_df
+        school_name_column = target_df['Custom Field Data - Chapter School Name']
+
+        # Step 2: Compare each entry in the school_name_column to the best_match to create a boolean Series
+        matching_rows_boolean_series = school_name_column == best_match
+
+        # Step 3: Filter target_df to get only the rows where the comparison is True
+        matching_rows_df = target_df[matching_rows_boolean_series]
+
+        # Step 4: Get the index of the filtered DataFrame
+        target_index = matching_rows_df.index
+
         # If a matching row is found, update the relevant fields
         if not target_index.empty:
             index = target_index[0]
@@ -49,6 +63,7 @@ def update_record(master_record, target_df):
 
     # Return the updated target dataframe
     return target_df
+
 
 # Loop through each record in the master dataframe and update the target dataframe accordingly
 for i, row in master_df.iterrows():
@@ -59,7 +74,7 @@ target_df.to_excel('Updated Zone 1 Activity New.xlsx', index=False)
 
 # Note: Add any additional processing or saving of the target_df if required
 
-## Testing
+# Testing
 # school_name = "Harvard College"
 # school_names = ["Harvard University"]
 # # school_name = "University of Massachusetts - Amherst"
