@@ -21,14 +21,18 @@ def update_record(master_record, target_df):
     # Extract the school name from the master record
     school_name = master_record['School Name (No abbreviations please)']
 
-    # Find the corresponding row in the target dataframe based on the school name
-    target_index = target_df[target_df['Custom Field Data - Chapter School Name'] == school_name].index
+    # Use fuzzy matching to find the best match for the school name in the target dataframe
+    school_names = target_df['Custom Field Data - Chapter School Name'].tolist()
+    best_match, score = process.extractOne(school_name, school_names, scorer=fuzz.token_sort_ratio)
 
-    # If a matching row is found, update the relevant fields
-    if not target_index.empty:
-        index = target_index[0]
-        target_df.at[index, 'Custom Field Data - SPS Chapter-Advisor Name'] = master_record['Chapter Adviser Name']
-        target_df.at[index, 'Custom Field Data - SPS Chapter-Advisor E-mail'] = master_record['Chapter Adviser Email']
+    # Check if the best match score is above a certain threshold (e.g., 90)
+    if score > 90:
+        target_index = target_df[target_df['Custom Field Data - Chapter School Name'] == best_match].index
+        # If a matching row is found, update the relevant fields
+        if not target_index.empty:
+            index = target_index[0]
+            target_df.at[index, 'Custom Field Data - SPS Chapter-Advisor Name'] = master_record['Chapter Adviser Name']
+            target_df.at[index, 'Custom Field Data - SPS Chapter-Advisor E-mail'] = master_record['Chapter Adviser Email']
 
     # Return the updated target dataframe
     return target_df
