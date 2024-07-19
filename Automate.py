@@ -1,4 +1,6 @@
 import pandas as pd  # Importing pandas library for data manipulation and analysis
+from fuzzywuzzy import fuzz
+from fuzzywuzzy import process
 import requests  # Importing requests library for making HTTP requests
 
 # Reading the master Excel file containing reports from Zone 1
