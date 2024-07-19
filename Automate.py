@@ -23,6 +23,19 @@ def update_record(master_record, target_df):
 
     # Use fuzzy matching to find the best match for the school name in the target dataframe
     school_names = target_df['Custom Field Data - Chapter School Name'].tolist()
+
+    # Arguments:
+    # - `school_name`: The string you want to find a match for.
+    # - `school_names`: The list of potential matches.
+    # - `scorer=fuzz.token_sort_ratio`: Specifies the scoring function used to evaluate the
+    # similarity between strings. `fuzz.token_sort_ratio` is a function that compares strings by
+    # sorting the tokens (words) in each string and then computing a ratio of similarity.
+
+    # Returns:
+    # - `best_match`: The string from `school_names` that has the highest similarity score to
+    # `school_name`.
+    # - `score`: The similarity score between `school_name` and `best_match`. This score ranges
+    # from 0 to 100, where 100 means an exact match.
     best_match, score = process.extractOne(school_name, school_names, scorer=fuzz.token_sort_ratio)
 
     # Check if the best match score is above a certain threshold (e.g., 90)
