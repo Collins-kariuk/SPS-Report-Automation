@@ -52,11 +52,12 @@ def update_record(master_record, target_df):
         # Step 3: Filter target_df to get only the rows where the comparison is True
         matching_rows_df = target_df[matching_rows_boolean_series]
 
-        # Step 4: Get the index of the filtered DataFrame
+        # target_index is an Int64Index object containing the indices of the matching rows
         target_index = matching_rows_df.index
 
         # If a matching row is found, update the relevant fields
         if not target_index.empty:
+            # target_index[0] accesses the first element in the Int64Index object
             index = target_index[0]
             target_df.at[index, 'Custom Field Data - SPS Chapter-Advisor Name'] = master_record['Chapter Adviser Name']
             target_df.at[index, 'Custom Field Data - SPS Chapter-Advisor E-mail'] = master_record['Chapter Adviser Email']
