@@ -58,3 +58,11 @@ for i, row in master_df.iterrows():
 target_df.to_excel('Updated Zone 1 Activity.xlsx', index=False)
 
 # Note: Add any additional processing or saving of the target_df if required
+
+## Testing
+# school_name = "Harvard College"
+# school_names = ["Harvard University"]
+# # school_name = "University of Massachusetts - Amherst"
+# # school_names = ["University of Massachusetts Amherst"]
+# best_match, score = process.extractOne(school_name, school_names, scorer=fuzz.token_sort_ratio)
+# print(f"Best match: {best_match}, Score: {score}")
