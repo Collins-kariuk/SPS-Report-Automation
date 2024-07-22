@@ -19,6 +19,30 @@ print("Induction DataFrame Columns:", induction_df.columns)
 target_df.columns = target_df.columns.str.strip()
 induction_df.columns = induction_df.columns.str.strip()
 
+def update_induction_date(school_name, target_df, index, induction_df):
+    # Use fuzzy matching to find the best match for the school name in the induction dataframe
+    induction_school_names = induction_df['Institution'].tolist()
+    induction_best_match, induction_score = process.extractOne(school_name, induction_school_names, scorer=fuzz.token_sort_ratio)
+
+    # Check if the best match score is above a certain threshold
+    if induction_score > 90:
+        # Verify that the match is indeed correct (additional step)
+        if school_name == induction_best_match:
+            # Step 1: Create a boolean series where the 'Institution' matches the 'induction_best_match'
+            matching_rows_boolean_series = induction_df['Institution'] == induction_best_match
+
+            # Step 2: Filter the induction_df to get only the rows where the comparison is True
+            matching_rows_df = induction_df[matching_rows_boolean_series]
+
+            # Step 3: Get the index of the matching rows in the filtered DataFrame
+            induction_index = matching_rows_df.index
+
+            # If a matching row is found, update the 'Custom Field Data - Last Sigma Pi Sigma Induction Date' field
+            if not induction_index.empty:
+                induction_date = induction_df.at[induction_index[0], 'Last Induction']
+                target_df.at[index, 'Custom Field Data - Last Sigma Pi Sigma Induction Date'] = induction_date
+    return target_df
+
 # Function to update a record in the target dataframe based on the master dataframe and induction dataframe
 def update_record(master_record, target_df, induction_df):
     # Extract the school name from the master record
@@ -68,19 +92,8 @@ def update_record(master_record, target_df, induction_df):
             target_df.at[index, 'Custom Field Data - SPS Chapter-StudentLeadership-Other Officers Names'] = master_record['Other Officers (Format: Name_1; Title_1; Name_2; Title_2 )']
             target_df.at[index, 'Custom Field Data - SPS Chapter-StudentLeadership-Other Officers Emails'] = master_record['Other Officers Email (Format: email1@mail.edu; email2@mail.edu)']
 
-            # Use fuzzy matching to find the best match for the school name in the induction dataframe
-            induction_school_names = induction_df['School Name'].tolist()
-            induction_best_match, induction_score = process.extractOne(school_name, induction_school_names, scorer=fuzz.token_sort_ratio)
-
-            # Check if the best match score is above a certain threshold
-            if induction_score > 40:
-                # Find the index of the row in the induction dataframe that matches the best match school name
-                induction_index = induction_df[induction_df['Institution'] == induction_best_match].index
-
-                # If a matching row is found, update the 'Custom Field Data - Last Sigma Pi Sigma Induction Date' field
-                if not induction_index.empty:
-                    induction_date = induction_df.at[induction_index[0], 'Last Induction']
-                    target_df.at[index, 'Custom Field Data - Last Sigma Pi Sigma Induction Date'] = induction_date
+            # Update the induction date separately
+            target_df = update_induction_date(school_name, target_df, index, induction_df)
 
     # Return the updated target dataframe
     return target_df
