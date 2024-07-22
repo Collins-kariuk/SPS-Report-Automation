@@ -75,7 +75,7 @@ def update_record(master_record, target_df, induction_df):
             # Check if the best match score is above a certain threshold
             if induction_score > 40:
                 # Find the index of the row in the induction dataframe that matches the best match school name
-                induction_index = induction_df[induction_df['School Name'] == induction_best_match].index
+                induction_index = induction_df[induction_df['Institution'] == induction_best_match].index
 
                 # If a matching row is found, update the 'Custom Field Data - Last Sigma Pi Sigma Induction Date' field
                 if not induction_index.empty:
