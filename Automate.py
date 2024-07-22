@@ -19,57 +19,51 @@ print("Induction DataFrame Columns:", induction_df.columns)
 target_df.columns = target_df.columns.str.strip()
 induction_df.columns = induction_df.columns.str.strip()
 
-def update_induction_date(school_name, target_df, index, induction_df):
-    # Use fuzzy matching to find the best match for the school name in the induction dataframe
-    induction_school_names = induction_df['Institution'].tolist()
-    induction_best_match, induction_score = process.extractOne(school_name, induction_school_names, scorer=fuzz.token_sort_ratio)
+def update_induction_date(school_name, city, target_df, index, induction_df):
+    # Combine school name and city for matching
+    school_city_combined = school_name + " " + city
+    induction_combined = induction_df['Institution'] + " " + induction_df['City']
+
+    # Use fuzzy matching to find the best match for the combined school name and city
+    induction_best_match, induction_score = process.extractOne(school_city_combined, induction_combined, scorer=fuzz.token_sort_ratio)
 
     # Check if the best match score is above a certain threshold
     if induction_score > 90:
-        # Verify that the match is indeed correct (additional step)
-        if school_name == induction_best_match:
-            # Step 1: Create a boolean series where the 'Institution' matches the 'induction_best_match'
-            matching_rows_boolean_series = induction_df['Institution'] == induction_best_match
+        # Step 1: Create a boolean series where the combined field matches the best match
+        matching_rows_boolean_series = (induction_df['Institution'] + " " + induction_df['City']) == induction_best_match
 
-            # Step 2: Filter the induction_df to get only the rows where the comparison is True
-            matching_rows_df = induction_df[matching_rows_boolean_series]
+        # Step 2: Filter the induction_df to get only the rows where the comparison is True
+        matching_rows_df = induction_df[matching_rows_boolean_series]
 
-            # Step 3: Get the index of the matching rows in the filtered DataFrame
-            induction_index = matching_rows_df.index
+        # Step 3: Get the index of the matching rows in the filtered DataFrame
+        induction_index = matching_rows_df.index
 
-            # If a matching row is found, update the 'Custom Field Data - Last Sigma Pi Sigma Induction Date' field
-            if not induction_index.empty:
-                induction_date = induction_df.at[induction_index[0], 'Last Induction']
-                target_df.at[index, 'Custom Field Data - Last Sigma Pi Sigma Induction Date'] = induction_date
+        # If a matching row is found, update the 'Custom Field Data - Last Sigma Pi Sigma Induction Date' field
+        if not induction_index.empty:
+            induction_date = induction_df.at[induction_index[0], 'Last Induction']
+            target_df.at[index, 'Custom Field Data - Last Sigma Pi Sigma Induction Date'] = induction_date
     return target_df
 
 # Function to update a record in the target dataframe based on the master dataframe and induction dataframe
 def update_record(master_record, target_df, induction_df):
     # Extract the school name from the master record
     school_name = master_record['School Name (No abbreviations please)']
-    # Use fuzzy matching to find the best match for the school name in the target dataframe
-    school_names = target_df['Custom Field Data - Chapter School Name'].tolist()
+    # Extract the city from the target dataframe
+    city = target_df.at[target_df[target_df['Custom Field Data - Chapter School Name'] == school_name].index[0], 'City']
 
-    # Arguments:
-    # - `school_name`: The string you want to find a match for.
-    # - `school_names`: The list of potential matches.
-    # - `scorer=fuzz.token_sort_ratio`: Specifies the scoring function used to evaluate the
-    # similarity between strings. `fuzz.token_sort_ratio` is a function that compares strings by
-    # sorting the tokens (words) in each string and then computing a ratio of similarity.
+    # Combine school name and city for matching
+    school_city_combined = school_name + " " + city
+    target_combined = target_df['Custom Field Data - Chapter School Name'] + " " + target_df['City']
 
-    # Returns:
-    # - `best_match`: The string from `school_names` that has the highest similarity score to
-    # `school_name`.
-    # - `score`: The similarity score between `school_name` and `best_match`. This score ranges
-    # from 0 to 100, where 100 means an exact match.
-    best_match, score = process.extractOne(school_name, school_names, scorer=fuzz.token_sort_ratio)
+    # Use fuzzy matching to find the best match for the combined school name and city in the target dataframe
+    best_match, score = process.extractOne(school_city_combined, target_combined, scorer=fuzz.token_sort_ratio)
 
     # Check if the best match score is above a certain threshold
     if score > 40:
-        # Step 1: Select the 'Custom Field Data - Chapter School Name' column from target_df
-        school_name_column = target_df['Custom Field Data - Chapter School Name']
-        # Step 2: Compare each entry in the school_name_column to the best_match to create a boolean Series
-        matching_rows_boolean_series = school_name_column == best_match
+        # Step 1: Select the combined 'Custom Field Data - Chapter School Name' and 'City' column from target_df
+        combined_column = target_df['Custom Field Data - Chapter School Name'] + " " + target_df['City']
+        # Step 2: Compare each entry in the combined_column to the best_match to create a boolean Series
+        matching_rows_boolean_series = combined_column == best_match
         # Step 3: Filter target_df to get only the rows where the comparison is True
         matching_rows_df = target_df[matching_rows_boolean_series]
         # target_index is an Int64Index object containing the indices of the matching rows
@@ -93,7 +87,7 @@ def update_record(master_record, target_df, induction_df):
             target_df.at[index, 'Custom Field Data - SPS Chapter-StudentLeadership-Other Officers Emails'] = master_record['Other Officers Email (Format: email1@mail.edu; email2@mail.edu)']
 
             # Update the induction date separately
-            target_df = update_induction_date(school_name, target_df, index, induction_df)
+            target_df = update_induction_date(school_name, city, target_df, index, induction_df)
 
     # Return the updated target dataframe
     return target_df
