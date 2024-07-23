@@ -19,21 +19,24 @@ induction_df = pd.read_excel('MHS Chapters.xlsx')
 target_df.columns = target_df.columns.str.strip()
 induction_df.columns = induction_df.columns.str.strip()
 
-
 def update_induction_date(school_name, city, target_df, index, induction_df):
     # Combine school name and city for matching
     school_city_combined = school_name + " " + city
     induction_combined = induction_df['Institution'] + " " + induction_df['City']
 
     # Use fuzzy matching to find the best match for the combined school name and city
-    induction_best_match, induction_score = process.extractOne(
-        school_city_combined, induction_combined, scorer=fuzz.token_sort_ratio)
+    result = process.extractOne(school_city_combined, induction_combined.tolist(), scorer=fuzz.token_sort_ratio)
+
+    # Ensure that result is not None and contains exactly two values
+    if result and len(result) == 2:
+        induction_best_match, induction_score = result
+    else:
+        induction_best_match, induction_score = None, 0
 
     # Check if the best match score is above a certain threshold
     if induction_score > 90:
         # Step 1: Create a boolean series where the combined field matches the best match
-        matching_rows_boolean_series = (
-            induction_df['Institution'] + " " + induction_df['City']) == induction_best_match
+        matching_rows_boolean_series = (induction_df['Institution'] + " " + induction_df['City']) == induction_best_match
 
         # Step 2: Filter the induction_df to get only the rows where the comparison is True
         matching_rows_df = induction_df[matching_rows_boolean_series]
@@ -45,8 +48,8 @@ def update_induction_date(school_name, city, target_df, index, induction_df):
         if not induction_index.empty:
             induction_date = induction_df.at[induction_index[0], 'Last Induction']
             target_df.at[index, 'Custom Field Data - Last Sigma Pi Sigma Induction Date'] = induction_date
+    
     return target_df
-
 
 # Function to update a record in the target dataframe based on the master dataframe and induction dataframe
 def update_record(master_record, target_df, induction_df):
@@ -67,7 +70,7 @@ def update_record(master_record, target_df, induction_df):
     # Step 4: Check if the 'City' column exists and access the value
     if 'Member/Non-Member - Employer City' not in target_df.columns:
         print(f"City column not found for {school_name}")
-        city = "Default City" # Use default city value
+        city = "Default City"  # Use default city value
     else:
         city = target_df.at[matching_index, 'Member/Non-Member - Employer City']
 
@@ -79,10 +82,16 @@ def update_record(master_record, target_df, induction_df):
     # Combine school name and city for matching
     school_city_combined = school_name + " " + city
     target_combined = target_df['Custom Field Data - Chapter School Name'] + " " + target_df['Member/Non-Member - Employer City']
-    print("target_combined:", target_combined)
+    print(f"Matching: {school_city_combined} against {target_combined.tolist()}")
 
     # Use fuzzy matching to find the best match for the combined school name and city in the target dataframe
-    best_match, score = process.extractOne(school_city_combined, target_combined, scorer=fuzz.token_sort_ratio)
+    result = process.extractOne(school_city_combined, target_combined.tolist(), scorer=fuzz.token_sort_ratio)
+
+    # Ensure that result is not None and contains exactly two values
+    if result and len(result) == 2:
+        best_match, score = result
+    else:
+        best_match, score = None, 0
 
     # Check if the best match score is above a certain threshold
     if score > 40:
