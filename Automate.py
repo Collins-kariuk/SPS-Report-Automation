@@ -48,9 +48,8 @@ def update_induction_date(school_name, city, target_df, index, induction_df):
             target_df.at[index, 'Custom Field Data - Last Sigma Pi Sigma Induction Date'] = induction_date
     return target_df
 
+
 # Function to update a record in the target dataframe based on the master dataframe and induction dataframe
-
-
 def update_record(master_record, target_df, induction_df):
     # Extract the school name from the master record
     school_name = master_record['School Name (No abbreviations please)']
@@ -96,10 +95,8 @@ def update_record(master_record, target_df, induction_df):
             target_df.at[index, 'Custom Field Data - SPS Chapter-StudentLeadership-Secretary Email'] = master_record['Incoming SPS Secretary Email']
             target_df.at[index, 'Custom Field Data - SPS Chapter-StudentLeadership-Treasurer Name'] = master_record['Incoming SPS Treasurer Name']
             target_df.at[index, 'Custom Field Data - SPS Chapter-StudentLeadership-Treasurer Email'] = master_record['Incoming SPS Treasurer Email']
-            target_df.at[index,
-                         'Custom Field Data - SPS Chapter-StudentLeadership-Other Officers Names'] = master_record['Other Officers (Format: Name_1; Title_1; Name_2; Title_2 )']
-            target_df.at[index, 'Custom Field Data - SPS Chapter-StudentLeadership-Other Officers Emails'] = master_record[
-                'Other Officers Email (Format: email1@mail.edu; email2@mail.edu)']
+            target_df.at[index, 'Custom Field Data - SPS Chapter-StudentLeadership-Other Officers Names'] = master_record['Other Officers (Format: Name_1; Title_1; Name_2; Title_2 )']
+            target_df.at[index, 'Custom Field Data - SPS Chapter-StudentLeadership-Other Officers Emails'] = master_record['Other Officers Email (Format: email1@mail.edu; email2@mail.edu)']
 
             # Update the induction date separately
             target_df = update_induction_date(
@@ -117,10 +114,10 @@ for i, row in master_df.iterrows():
 target_df.to_excel('Updated Zone 1 Activity New.xlsx', index=False)
 
 
-# Testing
-school_name = "Harvard College"
-school_names = ["Harvard University"]
-# school_name = "University of Massachusetts - Amherst"
-# school_names = ["University of Massachusetts Amherst"]
-best_match, score = process.extractOne(school_name, school_names)
-print(f"Best match: {best_match}, Score: {score}")
+# # Testing
+# school_name = "Harvard College"
+# school_names = ["Harvard University"]
+# # school_name = "University of Massachusetts - Amherst"
+# # school_names = ["University of Massachusetts Amherst"]
+# best_match, score = process.extractOne(school_name, school_names)
+# print(f"Best match: {best_match}, Score: {score}")
