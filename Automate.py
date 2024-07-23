@@ -61,15 +61,20 @@ def update_record(master_record, target_df, induction_df):
     if filtered_df.empty:
         print(f"No matching school name found for {school_name}")
         return target_df
+
     # Step 3: Get the index of the first matching row
     matching_index = filtered_df.index[0]
-    # Step 4: Access the value in the 'City' column using .at
-    city = target_df.at[matching_index, 'Member/Non-Member - Employer City']
+    # Step 4: Check if the 'City' column exists and access the value
+    if 'Member/Non-Member - Employer City' not in target_df.columns:
+        print(f"City column not found for {school_name}")
+        city = "Default City" # Use default city value
+    else:
+        city = target_df.at[matching_index, 'Member/Non-Member - Employer City']
 
     # Check if the city value is valid (not null or empty)
     if pd.isna(city) or city == '':
-        print(f"No city information available for {school_name}")
-        return target_df
+        print(f"No city information available for {school_name}, using default city")
+        city = "Default City" # Use default city value
 
     # Combine school name and city for matching
     school_city_combined = school_name + " " + city
