@@ -23,8 +23,7 @@ induction_df.columns = induction_df.columns.str.strip()
 def update_induction_date(school_name, city, target_df, index, induction_df):
     # Combine school name and city for matching
     school_city_combined = school_name + " " + city
-    induction_combined = induction_df['Institution'] + \
-        " " + induction_df['City']
+    induction_combined = induction_df['Institution'] + " " + induction_df['City']
 
     # Use fuzzy matching to find the best match for the combined school name and city
     induction_best_match, induction_score = process.extractOne(
@@ -57,10 +56,20 @@ def update_record(master_record, target_df, induction_df):
     boolean_series = target_df['Custom Field Data - Chapter School Name'] == school_name
     # Step 2: Filter the DataFrame using the Boolean Series
     filtered_df = target_df[boolean_series]
+
+    # Check if there are any matching rows
+    if filtered_df.empty:
+        print(f"No matching school name found for {school_name}")
+        return target_df
     # Step 3: Get the index of the first matching row
     matching_index = filtered_df.index[0]
     # Step 4: Access the value in the 'City' column using .at
     city = target_df.at[matching_index, 'Member/Non-Member - Employer City']
+
+    # Check if the city value is valid (not null or empty)
+    if pd.isna(city) or city == '':
+        print(f"No city information available for {school_name}")
+        return target_df
 
     # Combine school name and city for matching
     school_city_combined = school_name + " " + city
