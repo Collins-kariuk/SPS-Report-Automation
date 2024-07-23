@@ -11,9 +11,9 @@ target_df = pd.read_excel('Zone 1 Activity.xlsx', sheet_name='Activity Report')
 induction_df = pd.read_excel('MHS Chapters.xlsx')
 
 # Debugging step: Print column names to verify they are as expected
-print("Master DataFrame Columns:", master_df.columns)
-print("Target DataFrame Columns:", target_df.columns)
-print("Induction DataFrame Columns:", induction_df.columns)
+# print("Master DataFrame Columns:", master_df.columns)
+# print("Target DataFrame Columns:", target_df.columns)
+# print("Induction DataFrame Columns:", induction_df.columns)
 
 # Strip any leading/trailing spaces in column names
 target_df.columns = target_df.columns.str.strip()
@@ -44,10 +44,8 @@ def update_induction_date(school_name, city, target_df, index, induction_df):
 
         # If a matching row is found, update the 'Custom Field Data - Last Sigma Pi Sigma Induction Date' field
         if not induction_index.empty:
-            induction_date = induction_df.at[induction_index[0],
-                                             'Last Induction']
-            target_df.at[index,
-                         'Custom Field Data - Last Sigma Pi Sigma Induction Date'] = induction_date
+            induction_date = induction_df.at[induction_index[0], 'Last Induction']
+            target_df.at[index, 'Custom Field Data - Last Sigma Pi Sigma Induction Date'] = induction_date
     return target_df
 
 # Function to update a record in the target dataframe based on the master dataframe and induction dataframe
@@ -67,18 +65,16 @@ def update_record(master_record, target_df, induction_df):
 
     # Combine school name and city for matching
     school_city_combined = school_name + " " + city
-    target_combined = target_df['Custom Field Data - Chapter School Name'] + \
-        " " + target_df['Member/Non-Member - Employer City']
+    target_combined = target_df['Custom Field Data - Chapter School Name'] + " " + target_df['Member/Non-Member - Employer City']
+    print("target_combined:", target_combined)
 
     # Use fuzzy matching to find the best match for the combined school name and city in the target dataframe
-    best_match, score = process.extractOne(
-        school_city_combined, target_combined, scorer=fuzz.token_sort_ratio)
+    best_match, score = process.extractOne(school_city_combined, target_combined, scorer=fuzz.token_sort_ratio)
 
     # Check if the best match score is above a certain threshold
     if score > 40:
         # Step 1: Select the combined 'Custom Field Data - Chapter School Name' and 'City' column from target_df
-        combined_column = target_df['Custom Field Data - Chapter School Name'] + \
-            " " + target_df['Member/Non-Member - Employer City']
+        combined_column = target_df['Custom Field Data - Chapter School Name'] + " " + target_df['Member/Non-Member - Employer City']
         # Step 2: Compare each entry in the combined_column to the best_match to create a boolean Series
         matching_rows_boolean_series = combined_column == best_match
         # Step 3: Filter target_df to get only the rows where the comparison is True
@@ -119,3 +115,12 @@ for i, row in master_df.iterrows():
 
 # Save the updated target dataframe to a new Excel file
 target_df.to_excel('Updated Zone 1 Activity New.xlsx', index=False)
+
+
+# Testing
+school_name = "Harvard College"
+school_names = ["Harvard University"]
+# school_name = "University of Massachusetts - Amherst"
+# school_names = ["University of Massachusetts Amherst"]
+best_match, score = process.extractOne(school_name, school_names)
+print(f"Best match: {best_match}, Score: {score}")
