@@ -48,8 +48,14 @@ def update_induction_date(school_name, city, target_df, index, induction_df):
 def update_record(master_record, target_df, induction_df):
     # Extract the school name from the master record
     school_name = master_record['School Name (No abbreviations please)']
-    # Extract the city from the target dataframe
-    city = target_df.at[target_df[target_df['Custom Field Data - Chapter School Name'] == school_name].index[0], 'City']
+    # Step 1: Create a Boolean Series to match the school name
+    boolean_series = target_df['Custom Field Data - Chapter School Name'] == school_name
+    # Step 2: Filter the DataFrame using the Boolean Series
+    filtered_df = target_df[boolean_series]
+    # Step 3: Get the index of the first matching row
+    matching_index = filtered_df.index[0]
+    # Step 4: Access the value in the 'City' column using .at
+    city = target_df.at[matching_index, 'City']
 
     # Combine school name and city for matching
     school_city_combined = school_name + " " + city
