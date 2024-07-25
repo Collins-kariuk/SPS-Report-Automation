@@ -51,39 +51,6 @@ def update_induction_date(target_df, induction_df, master_df):
                 target_df.at[index, 'Custom Field Data - Last Sigma Pi Sigma Induction Date'] = induction_date
     return target_df
 
-def update_chapter_reports(target_df, master_df, current_year):
-    # Loop through each school in the master dataframe
-    for index, row in master_df.iterrows():
-        school_name = row['School Name (No abbreviations please)']
-
-        # Check if the school is in the target dataframe
-        if school_name in target_df['Custom Field Data - Chapter School Name'].values:
-            # Step 1: Create a boolean Series where each element is True if the 'Custom Field Data - Chapter School Name' matches the school_name
-            boolean_series = target_df['Custom Field Data - Chapter School Name'] == school_name
-            # Step 2: Use .loc to select rows where the condition is True and select the 'Custom Field Data - Chapter Reports' column
-            selected_rows = target_df.loc[boolean_series, 'Custom Field Data - Chapter Reports']
-            # Step 3: Extract the values of the selected column as a numpy array
-            values_array = selected_rows.values
-            # Step 4: Access the first element in the numpy array
-            current_entry = values_array[0]
-
-            # Ensure current_entry is a string for the `in` operation
-            current_entry_str = str(current_entry) if pd.notna(current_entry) else ''
-
-            # Determine the updated entry
-            if pd.isna(current_entry):
-                updated_entry = str(current_year)
-            else:
-                if str(current_year) not in current_entry_str:
-                    updated_entry = f'{current_entry_str}; {current_year}'
-                else:
-                    updated_entry = current_entry_str
-
-            condition = target_df['Custom Field Data - Chapter School Name'] == school_name
-            target_df.loc[condition, 'Custom Field Data - Chapter Reports'] = updated_entry
-
-    return target_df
-
 # Function to update a record in the target dataframe based on the master dataframe
 def update_record(master_record, target_df):
     # Extract the school name from the master record
@@ -126,6 +93,43 @@ def update_record(master_record, target_df):
     # Return the updated target dataframe
     return target_df
 
+def update_chapter_reports(target_df, master_df, current_year):
+    # Loop through each school in the master dataframe
+    for index, row in master_df.iterrows():
+        school_name = row['School Name (No abbreviations please)']
+
+        # Use fuzzy matching to find the best match for the school name in the target dataframe
+        school_names = target_df['Custom Field Data - Chapter School Name'].tolist()
+        best_match, score = process.extractOne(school_name, school_names, scorer=fuzz.token_sort_ratio)
+
+        # Check if the best match score is above a certain threshold
+        if score > 40:
+            # Step 1: Create a boolean Series where each element is True if the 'Custom Field Data - Chapter School Name' matches the best_match
+            boolean_series = target_df['Custom Field Data - Chapter School Name'] == best_match
+            # Step 2: Use .loc to select rows where the condition is True and select the 'Custom Field Data - Chapter Reports' column
+            selected_rows = target_df.loc[boolean_series, 'Custom Field Data - Chapter Reports']
+            # Step 3: Extract the values of the selected column as a numpy array
+            values_array = selected_rows.values
+            # Step 4: Access the first element in the numpy array
+            current_entry = values_array[0]
+
+            # Ensure current_entry is a string for the `in` operation
+            current_entry_str = str(current_entry) if pd.notna(current_entry) else ''
+
+            # Determine the updated entry
+            if pd.isna(current_entry):
+                updated_entry = str(current_year)
+            else:
+                if str(current_year) not in current_entry_str:
+                    updated_entry = f'{current_entry_str}; {current_year}'
+                else:
+                    updated_entry = current_entry_str
+
+            # Update the target dataframe with the new entry
+            target_df.loc[boolean_series, 'Custom Field Data - Chapter Reports'] = updated_entry
+
+    return target_df
+
 # Loop through each record in the master dataframe and update the target dataframe accordingly
 for i, row in master_df.iterrows():
     target_df = update_record(row, target_df)
@@ -134,14 +138,14 @@ for i, row in master_df.iterrows():
 # target_df = update_induction_date(target_df, induction_df, master_df)
 
 # Update chapter reports based on master_df and current year
-target_df = update_chapter_reports(target_df, master_df, 2024)
+# target_df = update_chapter_reports(target_df, master_df, 2024)
 
 # Save the updated target dataframe to a new Excel file
 target_df.to_excel('Updated Zone 1 Activity Playground.xlsx', index=False)
 
 # Testing
-# school_name = "University of Massachusetts Dartmouth"
-# school_names = ["University of Massachusetts - Dartmouth"]
+# school_name = "Harvard College"
+# school_names = ["Harvard University"]
 # school_name = "Worcester Polytechnic Institute"
 # school_names = ["Worcester Polytechnic Inst"]
 # best_match, score = process.extractOne(school_name, school_names, scorer=fuzz.token_sort_ratio)
