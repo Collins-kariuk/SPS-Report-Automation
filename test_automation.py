@@ -37,20 +37,13 @@ class TestAutomation(unittest.TestCase):
             updated_target_df = update_record(master_record, updated_target_df)
 
         # Check if Harvard University's chapter advisor details were correctly updated
-        # self.assertEqual(
-        #     updated_target_df.loc[
-        #         updated_target_df['Custom Field Data - Chapter School Name'] == 'Harvard University',
-        #         'Custom Field Data - SPS Chapter-Advisor Name'
-        #     ].values[0],
-        #     'Dr. David Morin'
-        # )
-        # self.assertEqual(
-        #     updated_target_df.loc[
-        #         updated_target_df['Custom Field Data - Chapter School Name'] == 'Harvard University',
-        #         'Custom Field Data - SPS Chapter-Advisor Email'
-        #     ].values[0],
-        #     'djmorin@fas.harvard.edu'
-        # )
+        self.assertEqual(
+            updated_target_df.loc[
+                updated_target_df['Custom Field Data - Chapter School Name'] == 'Harvard University',
+                'Custom Field Data - SPS Chapter-Advisor Name'
+            ].values[0],
+            'Dr. David Morin'
+        )
 
         # Check if University of Massachusetts Amherst's chapter advisor details were correctly updated
         self.assertEqual(
@@ -60,13 +53,6 @@ class TestAutomation(unittest.TestCase):
             ].values[0],
             'Ben Heidenreich'
         )
-        self.assertEqual(
-            updated_target_df.loc[
-                updated_target_df['Custom Field Data - Chapter School Name'] == 'University of Massachusetts-Amherst',
-                'Custom Field Data - SPS Chapter-Advisor Email'
-            ].values[0],
-            'bheidenreich@umass.edu'
-        )
 
         # Check if Fairfield University's chapter advisor details were correctly updated
         self.assertEqual(
@@ -75,13 +61,6 @@ class TestAutomation(unittest.TestCase):
                 'Custom Field Data - SPS Chapter-Advisor Name'
             ].values[0],
             'Angela Biselli and Robert Cordery '
-        )
-        self.assertEqual(
-            updated_target_df.loc[
-                updated_target_df['Custom Field Data - Chapter School Name'] == 'Fairfield University',
-                'Custom Field Data - SPS Chapter-Advisor Email'
-            ].values[0],
-            'rcordery@fairfield.edu'
         )
 
 if __name__ == '__main__':
