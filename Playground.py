@@ -29,10 +29,10 @@ def update_induction_date(target_df, induction_df, master_df):
 
         # Use fuzzy matching to find the best match for the school name in the induction dataframe
         induction_school_names = induction_df['Institution'].tolist()
-        # print(f"School Name: {school_name}")
+        print(f"School Name: {school_name}")
         induction_best_match, induction_score = process.extractOne(school_name, induction_school_names, scorer=fuzz.token_sort_ratio)
         # print the induction best match and induction score
-        # print(f"Induction Best match: {induction_best_match}, Score: {induction_score}")
+        print(f"Induction Best match: {induction_best_match}, Score: {induction_score}")
 
         # Check if the best match score is above a certain threshold
         if induction_score > 90:
@@ -58,20 +58,11 @@ def update_chapter_reports(target_df, master_df, current_year):
 
         # Check if the school is in the target dataframe
         if school_name in target_df['Custom Field Data - Chapter School Name'].values:
-            # Step 1: Create a boolean Series where each element is True if the 'Custom Field Data - Chapter School Name' matches the school_name
-            boolean_series = target_df['Custom Field Data - Chapter School Name'] == school_name
-            # Step 2: Use .loc to select rows where the condition is True and select the 'Custom Field Data - Chapter Reports' column
-            selected_rows = target_df.loc[boolean_series, 'Custom Field Data - Chapter Reports']
-            # Step 3: Extract the values of the selected column as a numpy array
-            values_array = selected_rows.values
-            # Step 4: Access the first element in the numpy array
-            current_entry = values_array[0]
-
+            current_entry = target_df.loc[target_df['Custom Field Data - Chapter School Name'] == school_name, 'Custom Field Data - Chapter Reports'].values[0]
             if pd.isna(current_entry):
                 updated_entry = str(current_year)
             else:
                 updated_entry = f'{current_entry}; {current_year}' if str(current_year) not in current_entry else current_entry
-            # TODO: Break down the line below for easier understanding
             target_df.loc[target_df['Custom Field Data - Chapter School Name'] == school_name, 'Custom Field Data - Chapter Reports'] = updated_entry
     return target_df
 
@@ -101,8 +92,18 @@ def update_record(master_record, target_df):
         if not target_index.empty:
             # target_index[0] accesses the first element in the Int64Index object
             index = target_index[0]
+            # target_df.at[index, 'Custom Field Data - SPS Chapter-Advisor Name'] = master_record['Chapter Adviser Name']
+            # target_df.at[index, 'Custom Field Data - SPS Chapter-Advisor E-mail'] = master_record['Chapter Adviser Email']
             target_df.at[index, 'Custom Field Data - SPS Chapter-StudentLeadership-President Name'] = master_record['Incoming SPS President Name']
             target_df.at[index, 'Custom Field Data - SPS Chapter-StudentLeadership-President Email'] = master_record['Incoming SPS President Email']
+            # target_df.at[index, 'Custom Field Data - SPS Chapter-StudentLeadership-Vice President Name'] = master_record['Incoming SPS Vice President Name']
+            # target_df.at[index, 'Custom Field Data - SPS Chapter-StudentLeadership-Vice President Email'] = master_record['Incoming SPS Vice President Email']
+            # target_df.at[index, 'Custom Field Data - SPS Chapter-StudentLeadership-Secretary Name'] = master_record['Incoming SPS Secretary Name']
+            # target_df.at[index, 'Custom Field Data - SPS Chapter-StudentLeadership-Secretary Email'] = master_record['Incoming SPS Secretary Email']
+            # target_df.at[index, 'Custom Field Data - SPS Chapter-StudentLeadership-Treasurer Name'] = master_record['Incoming SPS Treasurer Name']
+            # target_df.at[index, 'Custom Field Data - SPS Chapter-StudentLeadership-Treasurer Email'] = master_record['Incoming SPS Treasurer Email']
+            # target_df.at[index, 'Custom Field Data - SPS Chapter-StudentLeadership-Other Officers Names'] = master_record['Other Officers (Format: Name_1; Title_1; Name_2; Title_2 )']
+            # target_df.at[index, 'Custom Field Data - SPS Chapter-StudentLeadership-Other Officers Emails'] = master_record['Other Officers Email (Format: email1@mail.edu; email2@mail.edu)']
 
     # Return the updated target dataframe
     return target_df
