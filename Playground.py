@@ -58,12 +58,30 @@ def update_chapter_reports(target_df, master_df, current_year):
 
         # Check if the school is in the target dataframe
         if school_name in target_df['Custom Field Data - Chapter School Name'].values:
-            current_entry = target_df.loc[target_df['Custom Field Data - Chapter School Name'] == school_name, 'Custom Field Data - Chapter Reports'].values[0]
+            # Step 1: Create a boolean Series where each element is True if the 'Custom Field Data - Chapter School Name' matches the school_name
+            boolean_series = target_df['Custom Field Data - Chapter School Name'] == school_name
+            # Step 2: Use .loc to select rows where the condition is True and select the 'Custom Field Data - Chapter Reports' column
+            selected_rows = target_df.loc[boolean_series, 'Custom Field Data - Chapter Reports']
+            # Step 3: Extract the values of the selected column as a numpy array
+            values_array = selected_rows.values
+            # Step 4: Access the first element in the numpy array
+            current_entry = values_array[0]
+
+            # Ensure current_entry is a string for the `in` operation
+            current_entry_str = str(current_entry) if pd.notna(current_entry) else ''
+
+            # Determine the updated entry
             if pd.isna(current_entry):
                 updated_entry = str(current_year)
             else:
-                updated_entry = f'{current_entry}; {current_year}' if str(current_year) not in current_entry else current_entry
-            target_df.loc[target_df['Custom Field Data - Chapter School Name'] == school_name, 'Custom Field Data - Chapter Reports'] = updated_entry
+                if str(current_year) not in current_entry_str:
+                    updated_entry = f'{current_entry_str}; {current_year}'
+                else:
+                    updated_entry = current_entry_str
+
+            condition = target_df['Custom Field Data - Chapter School Name'] == school_name
+            target_df.loc[condition, 'Custom Field Data - Chapter Reports'] = updated_entry
+
     return target_df
 
 # Function to update a record in the target dataframe based on the master dataframe
