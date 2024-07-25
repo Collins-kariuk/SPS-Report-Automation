@@ -59,8 +59,6 @@ def update_record(master_record, target_df):
     school_names = target_df['Custom Field Data - Chapter School Name'].tolist()
 
     best_match, score = process.extractOne(school_name, school_names, scorer=fuzz.token_sort_ratio)
-    # print the score
-    # print(f"Best match: {best_match}, Score: {score}")
 
     # Check if the best match score is above a certain threshold
     if score > 40:
