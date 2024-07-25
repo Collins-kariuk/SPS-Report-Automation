@@ -58,21 +58,7 @@ def update_record(master_record, target_df):
     # Use fuzzy matching to find the best match for the school name in the target dataframe
     school_names = target_df['Custom Field Data - Chapter School Name'].tolist()
 
-    # Arguments:
-    # - `school_name`: The string you want to find a match for.
-    # - `school_names`: The list of potential matches.
-    # - `scorer=fuzz.token_sort_ratio`: Specifies the scoring function used to evaluate the
-    # similarity between strings. `fuzz.token_sort_ratio` is a function that compares strings by
-    # sorting the tokens (words) in each string and then computing a ratio of similarity.
-
-    # Returns:
-    # - `best_match`: The string from `school_names` that has the highest similarity score to
-    # `school_name`.
-    # - `score`: The similarity score between `school_name` and `best_match`. This score ranges
-    # from 0 to 100, where 100 means an exact match.
     best_match, score = process.extractOne(school_name, school_names, scorer=fuzz.token_sort_ratio)
-    # print the score
-    # print(f"Best match: {best_match}, Score: {score}")
 
     # Check if the best match score is above a certain threshold
     if score > 40:
@@ -105,19 +91,59 @@ def update_record(master_record, target_df):
     # Return the updated target dataframe
     return target_df
 
+def update_chapter_reports(target_df, master_df, current_year):
+    # Loop through each school in the master dataframe
+    for index, row in master_df.iterrows():
+        school_name = row['School Name (No abbreviations please)']
+
+        # Use fuzzy matching to find the best match for the school name in the target dataframe
+        school_names = target_df['Custom Field Data - Chapter School Name'].tolist()
+        best_match, score = process.extractOne(school_name, school_names, scorer=fuzz.token_sort_ratio)
+
+        # Check if the best match score is above a certain threshold
+        if score > 40:
+            # Step 1: Create a boolean Series where each element is True if the 'Custom Field Data - Chapter School Name' matches the best_match
+            boolean_series = target_df['Custom Field Data - Chapter School Name'] == best_match
+            # Step 2: Use .loc to select rows where the condition is True and select the 'Custom Field Data - Chapter Reports' column
+            selected_rows = target_df.loc[boolean_series, 'Custom Field Data - Chapter Reports']
+            # Step 3: Extract the values of the selected column as a numpy array
+            values_array = selected_rows.values
+            # Step 4: Access the first element in the numpy array
+            current_entry = values_array[0]
+
+            # Ensure current_entry is a string for the `in` operation
+            current_entry_str = str(current_entry) if pd.notna(current_entry) else ''
+
+            # Determine the updated entry
+            if pd.isna(current_entry):
+                updated_entry = str(current_year)
+            else:
+                if str(current_year) not in current_entry_str:
+                    updated_entry = f'{current_entry_str}; {current_year}'
+                else:
+                    updated_entry = current_entry_str
+
+            # Update the target dataframe with the new entry
+            target_df.loc[boolean_series, 'Custom Field Data - Chapter Reports'] = updated_entry
+
+    return target_df
+
 # Loop through each record in the master dataframe and update the target dataframe accordingly
 for i, row in master_df.iterrows():
     target_df = update_record(row, target_df)
 
 # Update induction dates separately, passing the filtered target_df
-target_df = update_induction_date(target_df, induction_df, master_df)
+# target_df = update_induction_date(target_df, induction_df, master_df)
+
+# Update chapter reports based on master_df and current year
+# target_df = update_chapter_reports(target_df, master_df, 2024)
 
 # Save the updated target dataframe to a new Excel file
 target_df.to_excel('Updated Zone 1 Activity Playground.xlsx', index=False)
 
 # Testing
-# school_name = "University of Massachusetts Dartmouth"
-# school_names = ["University of Massachusetts - Dartmouth"]
+# school_name = "Harvard College"
+# school_names = ["Harvard University"]
 # school_name = "Worcester Polytechnic Institute"
 # school_names = ["Worcester Polytechnic Inst"]
 # best_match, score = process.extractOne(school_name, school_names, scorer=fuzz.token_sort_ratio)

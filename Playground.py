@@ -5,104 +5,34 @@ import requests  # Importing requests library for making HTTP requests
 
 # Reading the master Excel file containing reports from Zone 1
 master_df = pd.read_excel('24 Reports Zone 1.xlsx')
+
 # Reading the 'Activity Report' sheet from the target Excel file
 target_df = pd.read_excel('Zone 1 Activity.xlsx', sheet_name='Activity Report')
-# Reading the additional Excel file containing induction dates
-induction_df = pd.read_excel('MHS Chapters.xlsx')
 
 # Debugging step: Print column names to verify they are as expected
-# print("Master DataFrame Columns:", master_df.columns)
-# print("Target DataFrame Columns:", target_df.columns)
-# print("Induction DataFrame Columns:", induction_df.columns)
+print("Master DataFrame Columns:", master_df.columns)
+print("Target DataFrame Columns:", target_df.columns)
 
 # Strip any leading/trailing spaces in column names
 target_df.columns = target_df.columns.str.strip()
-induction_df.columns = induction_df.columns.str.strip()
-
-def update_induction_date(target_df, induction_df, master_df):
-    # Filter the target_df to only include schools that submitted their chapter reports
-    filtered_target_df = target_df[target_df['Custom Field Data - Chapter School Name'].isin(master_df['School Name (No abbreviations please)'])]
-
-    # Loop through each record in the filtered target dataframe
-    for index, row in filtered_target_df.iterrows():
-        school_name = row['Custom Field Data - Chapter School Name']
-
-        # Use fuzzy matching to find the best match for the school name in the induction dataframe
-        induction_school_names = induction_df['Institution'].tolist()
-        # print(f"School Name: {school_name}")
-        induction_best_match, induction_score = process.extractOne(school_name, induction_school_names, scorer=fuzz.token_sort_ratio)
-        # print the induction best match and induction score
-        # print(f"Induction Best match: {induction_best_match}, Score: {induction_score}")
-
-        # Check if the best match score is above a certain threshold
-        if induction_score > 90:
-            # Step 1: Create a boolean series where the 'Institution' matches the 'induction_best_match'
-            matching_rows_boolean_series = induction_df['Institution'] == induction_best_match
-
-            # Step 2: Filter the induction_df to get only the rows where the comparison is True
-            matching_rows_df = induction_df[matching_rows_boolean_series]
-
-            # Step 3: Get the index of the matching rows in the filtered DataFrame
-            induction_index = matching_rows_df.index
-
-            # If a matching row is found, update the 'Custom Field Data - Last Sigma Pi Sigma Induction Date' field
-            if not induction_index.empty:
-                induction_date = induction_df.at[induction_index[0], 'Last Induction']
-                target_df.at[index, 'Custom Field Data - Last Sigma Pi Sigma Induction Date'] = induction_date
-    return target_df
-
-def update_chapter_reports(target_df, master_df, current_year):
-    # Loop through each school in the master dataframe
-    for index, row in master_df.iterrows():
-        school_name = row['School Name (No abbreviations please)']
-
-        # Check if the school is in the target dataframe
-        if school_name in target_df['Custom Field Data - Chapter School Name'].values:
-            # Step 1: Create a boolean Series where each element is True if the 'Custom Field Data - Chapter School Name' matches the school_name
-            boolean_series = target_df['Custom Field Data - Chapter School Name'] == school_name
-            # Step 2: Use .loc to select rows where the condition is True and select the 'Custom Field Data - Chapter Reports' column
-            selected_rows = target_df.loc[boolean_series, 'Custom Field Data - Chapter Reports']
-            # Step 3: Extract the values of the selected column as a numpy array
-            values_array = selected_rows.values
-            # Step 4: Access the first element in the numpy array
-            current_entry = values_array[0]
-
-            if pd.isna(current_entry):
-                updated_entry = str(current_year)
-            else:
-                updated_entry = f'{current_entry}; {current_year}' if str(current_year) not in current_entry else current_entry
-            # TODO: Break down the line below for easier understanding
-            target_df.loc[target_df['Custom Field Data - Chapter School Name'] == school_name, 'Custom Field Data - Chapter Reports'] = updated_entry
-    return target_df
 
 # Function to update a record in the target dataframe based on the master dataframe
 def update_record(master_record, target_df):
     # Extract the school name from the master record
     school_name = master_record['School Name (No abbreviations please)']
+
     # Use fuzzy matching to find the best match for the school name in the target dataframe
     school_names = target_df['Custom Field Data - Chapter School Name'].tolist()
-
     best_match, score = process.extractOne(school_name, school_names, scorer=fuzz.token_sort_ratio)
-    # print the score
-    # print(f"Best match: {best_match}, Score: {score}")
 
-    # Check if the best match score is above a certain threshold
+    # Check if the best match score is above a certain threshold (e.g., 90)
     if score > 40:
-        # Step 1: Select the 'Custom Field Data - Chapter School Name' column from target_df
-        school_name_column = target_df['Custom Field Data - Chapter School Name']
-        # Step 2: Compare each entry in the school_name_column to the best_match to create a boolean Series
-        matching_rows_boolean_series = school_name_column == best_match
-        # Step 3: Filter target_df to get only the rows where the comparison is True
-        matching_rows_df = target_df[matching_rows_boolean_series]
-        # target_index is an Int64Index object containing the indices of the matching rows
-        target_index = matching_rows_df.index
-
+        target_index = target_df[target_df['Custom Field Data - Chapter School Name'] == best_match].index
         # If a matching row is found, update the relevant fields
         if not target_index.empty:
-            # target_index[0] accesses the first element in the Int64Index object
             index = target_index[0]
-            target_df.at[index, 'Custom Field Data - SPS Chapter-StudentLeadership-President Name'] = master_record['Incoming SPS President Name']
-            target_df.at[index, 'Custom Field Data - SPS Chapter-StudentLeadership-President Email'] = master_record['Incoming SPS President Email']
+            target_df.at[index, 'Custom Field Data - SPS Chapter-Advisor Name'] = master_record['Chapter Adviser Name']
+            target_df.at[index, 'Custom Field Data - SPS Chapter-Advisor E-mail'] = master_record['Chapter Adviser Email']
 
     # Return the updated target dataframe
     return target_df
@@ -111,19 +41,7 @@ def update_record(master_record, target_df):
 for i, row in master_df.iterrows():
     target_df = update_record(row, target_df)
 
-# Update induction dates separately, passing the filtered target_df
-# target_df = update_induction_date(target_df, induction_df, master_df)
-
-# Update chapter reports based on master_df and current year
-target_df = update_chapter_reports(target_df, master_df, 2024)
-
 # Save the updated target dataframe to a new Excel file
-target_df.to_excel('Updated Zone 1 Activity Playground.xlsx', index=False)
+target_df.to_excel('Updated Zone 1 Activity NEW.xlsx', index=False)
 
-# Testing
-# school_name = "University of Massachusetts Dartmouth"
-# school_names = ["University of Massachusetts - Dartmouth"]
-# school_name = "Worcester Polytechnic Institute"
-# school_names = ["Worcester Polytechnic Inst"]
-# best_match, score = process.extractOne(school_name, school_names, scorer=fuzz.token_sort_ratio)
-# print(f"Best match: {best_match}, Score: {score}")
+# Note: Add any additional processing or saving of the target_df if required
