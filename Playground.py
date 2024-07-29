@@ -14,11 +14,13 @@ induction_df = pd.read_excel('MHS Chapters.xlsx')
 target_df.columns = target_df.columns.str.strip()
 induction_df.columns = induction_df.columns.str.strip()
 
-# Define a manual override dictionary for known problematic cases
 # 'University of Massachusetts - Amherst': 'University of Massachusetts Amherst'
-manual_overrides = {'Harvard College': 'Harvard University'}
+manual_overrides = {
+    'Harvard College': 'Harvard University'
+}
 
 def get_correct_match(school_name: str, school_names: List[str]) -> Tuple[str, int]:
+    # school_name = school_name.strip() # Trim whitespace from the school name
     if school_name in manual_overrides:
         return manual_overrides[school_name], 100
     else:
@@ -26,16 +28,19 @@ def get_correct_match(school_name: str, school_names: List[str]) -> Tuple[str, i
 
 # Function to update a record in the target dataframe based on the master dataframe
 def update_record(master_record: pd.Series, target_df: pd.DataFrame) -> pd.DataFrame:
-    # Extract the school name from the master record
-    school_name = master_record['School Name (No abbreviations please)']
+    # Extract and trim the school name from the master record
+    school_name = master_record['School Name (No abbreviations please)'].strip()
+    print(f"School Name: {school_name}")
+    print("-----------------")
     # Use manual overrides or fuzzy matching to find the best match for the school name in the target dataframe
-    school_names = target_df['Custom Field Data - Chapter School Name'].tolist()
+    school_names = [name.strip() for name in target_df['Custom Field Data - Chapter School Name'].tolist()]
     best_match, score = get_correct_match(school_name, school_names)
+    print(f"Best match: {best_match}, Score: {score}")
 
     # Check if the best match score is above a certain threshold
     if score > 40:
         # Step 1: Select the 'Custom Field Data - Chapter School Name' column from target_df
-        school_name_column = target_df['Custom Field Data - Chapter School Name']
+        school_name_column = target_df['Custom Field Data - Chapter School Name'].str.strip()
         # Step 2: Compare each entry in the school_name_column to the best_match to create a boolean Series
         matching_rows_boolean_series = school_name_column == best_match
         # Step 3: Filter target_df to get only the rows where the comparison is True
@@ -85,7 +90,7 @@ for i, row in master_df.iterrows():
     target_df = update_record(row, target_df)
 
 # Update chapter reports based on master_df and current year
-target_df = update_chapter_reports(target_df, master_df, 2024)
+# target_df = update_chapter_reports(target_df, master_df, 2024)
 
 # Save the updated target dataframe to a new Excel file
 target_df.to_excel('Updated Zone 1 Activity Playground.xlsx', index=False)
