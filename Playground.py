@@ -20,7 +20,6 @@ manual_overrides = {
 }
 
 def get_correct_match(school_name: str, school_names: List[str]) -> Tuple[str, int]:
-    # school_name = school_name.strip() # Trim whitespace from the school name
     if school_name in manual_overrides:
         return manual_overrides[school_name], 100
     else:
@@ -31,11 +30,11 @@ def update_record(master_record: pd.Series, target_df: pd.DataFrame) -> pd.DataF
     # Extract and trim the school name from the master record
     school_name = master_record['School Name (No abbreviations please)'].strip()
     print(f"School Name: {school_name}")
-    print("-----------------")
     # Use manual overrides or fuzzy matching to find the best match for the school name in the target dataframe
     school_names = [name.strip() for name in target_df['Custom Field Data - Chapter School Name'].tolist()]
     best_match, score = get_correct_match(school_name, school_names)
     print(f"Best match: {best_match}, Score: {score}")
+    print("-----------------")
 
     # Check if the best match score is above a certain threshold
     if score > 40:
