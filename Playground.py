@@ -94,7 +94,7 @@ def update_chapter_reports(target_df: pd.DataFrame, master_df: pd.DataFrame, cur
 
     return target_df
 
-def update_induction_date(target_df, induction_df, master_df):
+def update_induction_date(target_df: pd.DataFrame, induction_df: pd.DataFrame, master_df: pd.DataFrame) -> pd.DataFrame:
     # Filter the target_df to only include schools that submitted their chapter reports
     filtered_target_df = target_df[target_df['Custom Field Data - Chapter School Name'].isin(master_df['School Name (No abbreviations please)'])]
 
