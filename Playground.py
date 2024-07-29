@@ -29,12 +29,12 @@ def get_correct_match(school_name: str, school_names: List[str]) -> Tuple[str, i
 def update_record(master_record: pd.Series, target_df: pd.DataFrame) -> pd.DataFrame:
     # Extract and trim the school name from the master record
     school_name = master_record['School Name (No abbreviations please)'].strip()
-    print(f"School Name: {school_name}")
+    # print(f"School Name: {school_name}")
     # Use manual overrides or fuzzy matching to find the best match for the school name in the target dataframe
     school_names = [name.strip() for name in target_df['Custom Field Data - Chapter School Name'].tolist()]
     best_match, score = get_correct_match(school_name, school_names)
-    print(f"Best match: {best_match}, Score: {score}")
-    print("-----------------")
+    # print(f"Best match: {best_match}, Score: {score}")
+    # print("-----------------")
 
     # Check if the best match score is above a certain threshold
     if score > 40:
@@ -60,9 +60,12 @@ def update_record(master_record: pd.Series, target_df: pd.DataFrame) -> pd.DataF
 # Function to update the chapter reports based on the master dataframe and current year
 def update_chapter_reports(target_df: pd.DataFrame, master_df: pd.DataFrame, current_year: int) -> pd.DataFrame:
     for index, row in master_df.iterrows():
-        school_name = row['School Name (No abbreviations please)']
-        school_names = target_df['Custom Field Data - Chapter School Name'].tolist()
+        school_name = row['School Name (No abbreviations please)'].strip()
+        print(f"School Name: {school_name}")
+        school_names = [name.strip() for name in target_df['Custom Field Data - Chapter School Name'].tolist()]
         best_match, score = get_correct_match(school_name, school_names)
+        print(f"Best match: {best_match}, Score: {score}")
+        print("-----------------")
 
         if score > 40:
             boolean_series = target_df['Custom Field Data - Chapter School Name'] == best_match
@@ -85,11 +88,11 @@ def update_chapter_reports(target_df: pd.DataFrame, master_df: pd.DataFrame, cur
     return target_df
 
 # Loop through each record in the master dataframe and update the target dataframe accordingly
-for i, row in master_df.iterrows():
-    target_df = update_record(row, target_df)
+# for i, row in master_df.iterrows():
+#     target_df = update_record(row, target_df)
 
 # Update chapter reports based on master_df and current year
-# target_df = update_chapter_reports(target_df, master_df, 2024)
+target_df = update_chapter_reports(target_df, master_df, 2024)
 
 # Save the updated target dataframe to a new Excel file
 target_df.to_excel('Updated Zone 1 Activity Playground.xlsx', index=False)
