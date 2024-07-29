@@ -71,11 +71,8 @@ def update_record(master_record: pd.Series, target_df: pd.DataFrame) -> pd.DataF
 def update_chapter_reports(target_df: pd.DataFrame, master_df: pd.DataFrame, current_year: int) -> pd.DataFrame:
     for index, row in master_df.iterrows():
         school_name = row['School Name (No abbreviations please)'].strip()
-        print(f"School Name: {school_name}")
         school_names = [name.strip() for name in target_df['Custom Field Data - Chapter School Name'].tolist()]
         best_match, score = get_correct_match(school_name, school_names)
-        print(f"Best match: {best_match}, Score: {score}")
-        print("-----------------")
 
         if score > 40:
             boolean_series = target_df['Custom Field Data - Chapter School Name'] == best_match
@@ -86,7 +83,7 @@ def update_chapter_reports(target_df: pd.DataFrame, master_df: pd.DataFrame, cur
             current_entry_str = str(current_entry) if pd.notna(current_entry) else ''
 
             if pd.isna(current_entry):
-                updated_entry = str(current_year)
+                updated_entry = current_year
             else:
                 if str(current_year) not in current_entry_str:
                     updated_entry = f'{current_entry_str}; {current_year}'
