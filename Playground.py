@@ -1,6 +1,7 @@
 import pandas as pd
 from fuzzywuzzy import fuzz
 from fuzzywuzzy import process
+from typing import List, Tuple
 
 # Reading the master Excel file containing reports from Zone 1
 master_df = pd.read_excel('24 Reports Zone 1.xlsx')
@@ -14,19 +15,17 @@ target_df.columns = target_df.columns.str.strip()
 induction_df.columns = induction_df.columns.str.strip()
 
 # Define a manual override dictionary for known problematic cases
-manual_overrides = {
-    'Harvard College': 'Harvard University',
-    'University of Massachusetts - Amherst': 'University of Massachusetts Amherst'
-}
+# 'University of Massachusetts - Amherst': 'University of Massachusetts Amherst'
+manual_overrides = {'Harvard College': 'Harvard University'}
 
-def get_correct_match(school_name, school_names):
+def get_correct_match(school_name: str, school_names: List[str]) -> Tuple[str, int]:
     if school_name in manual_overrides:
         return manual_overrides[school_name], 100
     else:
         return process.extractOne(school_name, school_names, scorer=fuzz.token_sort_ratio)
 
 # Function to update a record in the target dataframe based on the master dataframe
-def update_record(master_record, target_df):
+def update_record(master_record: pd.Series, target_df: pd.DataFrame) -> pd.DataFrame:
     # Extract the school name from the master record
     school_name = master_record['School Name (No abbreviations please)']
     # Use manual overrides or fuzzy matching to find the best match for the school name in the target dataframe
@@ -55,7 +54,7 @@ def update_record(master_record, target_df):
     return target_df
 
 # Function to update the chapter reports based on the master dataframe and current year
-def update_chapter_reports(target_df, master_df, current_year):
+def update_chapter_reports(target_df: pd.DataFrame, master_df: pd.DataFrame, current_year: int) -> pd.DataFrame:
     for index, row in master_df.iterrows():
         school_name = row['School Name (No abbreviations please)']
         school_names = target_df['Custom Field Data - Chapter School Name'].tolist()
