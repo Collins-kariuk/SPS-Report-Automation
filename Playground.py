@@ -94,12 +94,44 @@ def update_chapter_reports(target_df: pd.DataFrame, master_df: pd.DataFrame, cur
 
     return target_df
 
+def update_induction_date(target_df, induction_df, master_df):
+    # Filter the target_df to only include schools that submitted their chapter reports
+    filtered_target_df = target_df[target_df['Custom Field Data - Chapter School Name'].isin(master_df['School Name (No abbreviations please)'])]
+
+    # Loop through each record in the filtered target dataframe
+    for index, row in filtered_target_df.iterrows():
+        school_name = row['Custom Field Data - Chapter School Name']
+
+        # Use fuzzy matching to find the best match for the school name in the induction dataframe
+        induction_school_names = induction_df['Institution'].tolist()
+        print(f"School Name: {school_name}")
+        induction_best_match, induction_score = process.extractOne(school_name, induction_school_names, scorer=fuzz.token_sort_ratio)
+        # print the induction best match and induction score
+        print(f"Induction Best match: {induction_best_match}, Score: {induction_score}")
+
+        # Check if the best match score is above a certain threshold
+        if induction_score > 90:
+            # Step 1: Create a boolean series where the 'Institution' matches the 'induction_best_match'
+            matching_rows_boolean_series = induction_df['Institution'] == induction_best_match
+            # Step 2: Filter the induction_df to get only the rows where the comparison is True
+            matching_rows_df = induction_df[matching_rows_boolean_series]
+            # Step 3: Get the index of the matching rows in the filtered DataFrame
+            induction_index = matching_rows_df.index
+            # If a matching row is found, update the 'Custom Field Data - Last Sigma Pi Sigma Induction Date' field
+            if not induction_index.empty:
+                induction_date = induction_df.at[induction_index[0], 'Last Induction']
+                target_df.at[index, 'Custom Field Data - Last Sigma Pi Sigma Induction Date'] = induction_date
+    return target_df
+
 # Loop through each record in the master dataframe and update the target dataframe accordingly
 # for i, row in master_df.iterrows():
 #     target_df = update_record(row, target_df)
 
 # Update chapter reports based on master_df and current year
-target_df = update_chapter_reports(target_df, master_df, 2024)
+# target_df = update_chapter_reports(target_df, master_df, 2024)
+
+# Update induction dates separately, passing the filtered target_df
+target_df = update_induction_date(target_df, induction_df, master_df)
 
 # Save the updated target dataframe to a new Excel file
 target_df.to_excel('Updated Zone 1 Activity Playground.xlsx', index=False)
