@@ -11,14 +11,7 @@ induction_df = pd.read_excel('MHS Chapters.xlsx') # Reading the additional Excel
 target_df.columns = target_df.columns.str.strip()
 induction_df.columns = induction_df.columns.str.strip()
 
-<<<<<<< Updated upstream
-# 'University of Massachusetts - Amherst': 'University of Massachusetts Amherst'
-manual_overrides = {
-    'Harvard College': 'Harvard University'
-}
-=======
 manual_overrides = {'Harvard College': 'Harvard University'}
->>>>>>> Stashed changes
 
 def get_correct_match(school_name: str, school_names: List[str]) -> Tuple[str, int]:
     if school_name in manual_overrides: return manual_overrides[school_name], 100
@@ -144,10 +137,10 @@ def update_induction_date(target_df: pd.DataFrame, induction_df: pd.DataFrame, m
 # target_df = update_chapter_reports(target_df, master_df, 2024)
 
 # Update induction dates separately, passing the filtered target_df
-target_df = update_induction_date(target_df, induction_df, master_df)
+# target_df = update_induction_date(target_df, induction_df, master_df)
 
 # Save the updated target dataframe to a new Excel file
-target_df.to_excel('Updated Zone 1 Activity Playground.xlsx', index=False)
+# target_df.to_excel('Updated Zone 1 Activity Playground.xlsx', index=False)
 
 # Testing
 # school_name = "Harvard College"
