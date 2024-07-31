@@ -14,6 +14,9 @@ induction_df = pd.read_excel('MHS Chapters.xlsx')
 target_df.columns = target_df.columns.str.strip()
 induction_df.columns = induction_df.columns.str.strip()
 
+# Print the column names of the target dataframe
+print(target_df.columns)
+
 # 'University of Massachusetts - Amherst': 'University of Massachusetts Amherst'
 manual_overrides = {
     'Harvard College': 'Harvard University'
@@ -131,10 +134,10 @@ def update_induction_date(target_df: pd.DataFrame, induction_df: pd.DataFrame, m
 # target_df = update_chapter_reports(target_df, master_df, 2024)
 
 # Update induction dates separately, passing the filtered target_df
-target_df = update_induction_date(target_df, induction_df, master_df)
+# target_df = update_induction_date(target_df, induction_df, master_df)
 
 # Save the updated target dataframe to a new Excel file
-target_df.to_excel('Updated Zone 1 Activity Playground.xlsx', index=False)
+# target_df.to_excel('Updated Zone 1 Activity Playground.xlsx', index=False)
 
 # Testing
 # school_name = "Harvard College"
