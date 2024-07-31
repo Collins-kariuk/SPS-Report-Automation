@@ -3,38 +3,51 @@ from fuzzywuzzy import fuzz
 from fuzzywuzzy import process
 from typing import List, Tuple
 
-# Reading the master Excel file containing reports from Zone 1
-master_df = pd.read_excel('24 Reports Zone 1.xlsx')
-# Reading the 'Activity Report' sheet from the target Excel file
-target_df = pd.read_excel('Zone 1 Activity.xlsx', sheet_name='Activity Report')
-# Reading the additional Excel file containing induction dates
-induction_df = pd.read_excel('MHS Chapters.xlsx')
+master_df = pd.read_excel('24 Reports Zone 1.xlsx') # Reading the master Excel file containing reports from Zone 1
+target_df = pd.read_excel('Zone 1 Activity.xlsx', sheet_name='Activity Report') # Reading the 'Activity Report' sheet from the target Excel file
+induction_df = pd.read_excel('MHS Chapters.xlsx') # Reading the additional Excel file containing induction dates
 
 # Strip any leading/trailing spaces in column names
 target_df.columns = target_df.columns.str.strip()
 induction_df.columns = induction_df.columns.str.strip()
 
+<<<<<<< Updated upstream
 # 'University of Massachusetts - Amherst': 'University of Massachusetts Amherst'
 manual_overrides = {
     'Harvard College': 'Harvard University'
 }
+=======
+manual_overrides = {'Harvard College': 'Harvard University'}
+>>>>>>> Stashed changes
 
 def get_correct_match(school_name: str, school_names: List[str]) -> Tuple[str, int]:
-    if school_name in manual_overrides:
-        return manual_overrides[school_name], 100
-    else:
-        return process.extractOne(school_name, school_names, scorer=fuzz.token_sort_ratio)
+    if school_name in manual_overrides: return manual_overrides[school_name], 100
+    else: return process.extractOne(school_name, school_names, scorer=fuzz.token_sort_ratio)
 
-# Function to update a record in the target dataframe based on the master dataframe
 def update_record(master_record: pd.Series, target_df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Updates the target dataframe with the relevant details from the master record using fuzzy matching 
+    or manual overrides for school name matching.
+
+    Args:
+        master_record (pd.Series): A record from the master dataframe containing the school details.
+        target_df (pd.DataFrame): The target dataframe to be updated.
+
+    Returns:
+        pd.DataFrame: The updated target dataframe.
+    
+    Steps:
+        1. Extract and trim the school name from the master record.
+        2. Use manual overrides or fuzzy matching to find the best match for the school name in the target dataframe.
+        3. If the best match score is above a certain threshold (40):
+            - Create a boolean series to filter the target dataframe where the school names match.
+            - Update the relevant fields (advisor names, emails, student leadership details) for the matched school.
+    """
     # Extract and trim the school name from the master record
     school_name = master_record['School Name (No abbreviations please)'].strip()
-    # print(f"School Name: {school_name}")
     # Use manual overrides or fuzzy matching to find the best match for the school name in the target dataframe
     school_names = [name.strip() for name in target_df['Custom Field Data - Chapter School Name'].tolist()]
     best_match, score = get_correct_match(school_name, school_names)
-    # print(f"Best match: {best_match}, Score: {score}")
-    # print("-----------------")
 
     # Check if the best match score is above a certain threshold
     if score > 40:
