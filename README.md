@@ -17,13 +17,6 @@ The **SPS Report Automation** project aims to improve the efficiency of managing
 - **Data Update**: Updates target dataframes with new information, including chapter reports and induction dates.
 - **Flexibility**: Allows for manual overrides and customizable matching thresholds.
 
-## Script Functions
-
-- **get_correct_match**: Finds the best match for a school name using fuzzy matching and manual overrides.
-- **update_record**: Updates the target dataframe with details from the master record based on school name matching.
-- **update_chapter_reports**: Updates chapter reports with current year data, handling duplicate entries and ensuring consistency.
-- **update_induction_date**: Updates the induction date for schools based on fuzzy matching with an induction date file.
-
 ## Setup Instructions
 
 1. **Clone the Repository**
