@@ -11,6 +11,12 @@ induction_df = pd.read_excel('MHS Chapters.xlsx') # Reading the additional Excel
 target_df.columns = target_df.columns.str.strip()
 induction_df.columns = induction_df.columns.str.strip()
 
+# Print the column names of the master dataframe and the target dataframe
+print("Master Dataframe Columns:")
+print(master_df.columns)
+print("\nTarget Dataframe Columns:")
+print(target_df.columns)
+
 manual_overrides = {'Harvard College': 'Harvard University'}
 
 def get_correct_match(school_name: str, school_names: List[str]) -> Tuple[str, int]:
